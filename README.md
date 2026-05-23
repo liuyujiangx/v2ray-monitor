@@ -29,6 +29,8 @@
 - 每个用户月度配额和使用率进度条
 - 实时上传 / 下载速度估算
 - 页面内告警记录
+- 月度流量阈值告警（80% / 90% / 100% 可配置）
+- 新告警邮件通知（SMTP，可选）
 - V2Ray access log 读取
 - 最近访问日志列表
 - 按用户过滤访问日志
@@ -39,8 +41,8 @@
 
 ## 即将开发
 
-- Bark / Telegram 外部告警通知
-- 告警通知去重和发送状态记录
+- Bark / Telegram 外部告警通知（配置项已预留 `provider`，尚未实现）
+- 告警通知发送状态记录
 - 最近 24 小时流量趋势图
 - 本月每日流量柱状图
 - 用户最后活跃时间
@@ -61,6 +63,7 @@ v2ray-monitor/
     services/
       access_log.py        # V2Ray access log 读取与解析
       alerts.py            # 告警规则
+      notify.py            # 外部通知（邮件 SMTP 等）
       history.py           # SQLite 历史记录
       v2ray.py             # V2Ray stats 读取与解析
     static/
@@ -134,7 +137,41 @@ max_lines = 500
 enabled = false
 username = "admin"
 password = "change-me"
+
+[alerts]
+enabled = true
+provider = "email"
+thresholds = [80, 90, 100]
+
+[alerts.email]
+# 密码填网易「客户端授权码」，不是登录密码；勿将真实授权码提交到 Git
+smtp_host = "smtp.163.com"
+smtp_port = 465
+use_tls = false
+use_ssl = true
+username = "you@163.com"
+password = "your-163-client-auth-code"
+from_addr = "you@163.com"
+to_addrs = ["you@163.com"]
 ```
+
+### 邮件告警示例
+
+| 邮箱 | smtp_host | 端口 | 加密 |
+|------|-----------|------|------|
+| 网易 163 | `smtp.163.com` | 465（推荐）或 587 | 465：`use_ssl = true`；587：`use_tls = true` |
+| Gmail | `smtp.gmail.com` | 587 | `use_tls = true` |
+| QQ 邮箱 | `smtp.qq.com` | 465 | `use_ssl = true` |
+| 企业邮 / 自建 | 向管理员索取 | 通常 587 或 465 | 按服务商说明 |
+
+#### 网易 163 邮箱（告警推荐）
+
+1. 浏览器登录 [网易邮箱](https://mail.163.com/) → **设置** → **POP3/SMTP/IMAP**。
+2. 开启 **IMAP/SMTP** 或 **POP3/SMTP** 服务，在 **客户端授权密码** 处新增授权码（短信验证）；授权码只显示一次，请立即保存。
+3. 编辑 `config.toml`：`provider = "email"`，在 `[alerts.email]` 中填写完整 `@163.com` 地址与授权码；`password` 必须是授权码，不能填网页登录密码。
+4. **推荐**：`smtp.163.com`、端口 **465**、`use_ssl = true`、`use_tls = false`。若 465 被网络拦截，可改用端口 **587**、`use_tls = true`、`use_ssl = false`。
+
+`provider = "none"` 时仅写入 SQLite 并在面板展示，不发邮件。SMTP 字段不完整时会跳过发送并打 warning 日志，不影响 `/api/stats` 响应。
 
 ## V2Ray 要求
 
