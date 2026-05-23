@@ -31,5 +31,20 @@ max_lines = 500
 
 [alerts]
 enabled = false
+# none | email | bark | telegram (后两者尚未实现)
 provider = "none"
 thresholds = [80, 90, 100]
+
+[alerts.email]
+# 网易 163 邮箱（推荐 465 + SSL）：smtp.163.com；password 填「客户端授权码」，不是网页登录密码
+# 备选 587 + STARTTLS：smtp_port = 587, use_tls = true, use_ssl = false
+# Gmail: smtp.gmail.com, 587, use_tls = true，应用专用密码
+# QQ: smtp.qq.com, 465, use_ssl = true，SMTP 授权码
+smtp_host = "smtp.163.com"
+smtp_port = 465
+use_tls = false
+use_ssl = true
+username = "your-name@163.com"
+password = "your-163-client-auth-code"
+from_addr = "your-name@163.com"
+to_addrs = ["notify@example.com"]

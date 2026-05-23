@@ -49,10 +49,23 @@ class LogsConfig:
 
 
 @dataclass(frozen=True)
+class EmailAlertsConfig:
+    smtp_host: str = ""
+    smtp_port: int = 587
+    use_tls: bool = True
+    use_ssl: bool = False
+    username: str = ""
+    password: str = ""
+    from_addr: str = ""
+    to_addrs: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class AlertsConfig:
     enabled: bool = False
     provider: str = "none"
     thresholds: list[int] = field(default_factory=lambda: [80, 90, 100])
+    email: EmailAlertsConfig = field(default_factory=EmailAlertsConfig)
 
 
 @dataclass(frozen=True)
@@ -89,5 +102,14 @@ def load_config(path: Path = CONFIG_PATH) -> AppConfig:
         traffic=TrafficConfig(**raw.get("traffic", {})),
         logs=LogsConfig(**raw.get("logs", {})),
         quota=raw.get("quota", {}),
-        alerts=AlertsConfig(**raw.get("alerts", {})),
+        alerts=_load_alerts_config(raw.get("alerts", {})),
+    )
+
+
+def _load_alerts_config(raw: dict) -> AlertsConfig:
+    data = dict(raw)
+    email_raw = data.pop("email", {})
+    return AlertsConfig(
+        email=EmailAlertsConfig(**email_raw),
+        **data,
     )

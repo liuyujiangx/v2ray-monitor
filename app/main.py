@@ -16,6 +16,7 @@ from app.models import TrafficPair, usage_percent
 from app.services.access_log import read_access_log
 from app.services.alerts import evaluate_monthly_alerts
 from app.services.history import HistoryStore
+from app.services.notify import notify_new_alert
 from app.services.v2ray import read_stats
 
 
@@ -86,7 +87,7 @@ def api_stats(_: None = Depends(require_auth)):
         thresholds=config.alerts.thresholds,
         now=now,
     ):
-        history.create_alert_event(
+        if history.create_alert_event(
             alert_key=alert["alert_key"],
             scope=alert["scope"],
             name=alert["name"],
@@ -96,7 +97,8 @@ def api_stats(_: None = Depends(require_auth)):
             quota_bytes=alert["quota_bytes"],
             message=alert["message"],
             created_at=now,
-        )
+        ):
+            notify_new_alert(config, alert, now)
 
     payload = snapshot.to_dict(quotas=config.quota)
     payload.update(
