@@ -1,0 +1,28 @@
+[server]
+host = "0.0.0.0"
+port = 8000
+
+[v2ray]
+api_address = "127.0.0.1:10085"
+command = "v2ray"
+
+[dashboard]
+refresh_seconds = 2
+
+[auth]
+enabled = false
+username = "admin"
+password = "change-me"
+
+[database]
+path = "data/traffic.sqlite3"
+
+[quota]
+# 单位是 GB。用户名需要和 V2Ray stats 里的 user 名称一致。
+# yujl = 100
+
+[alerts]
+enabled = false
+provider = "none"
+thresholds = [80, 90, 100]
+

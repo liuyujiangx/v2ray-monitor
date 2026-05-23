@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>V2Ray 流量监控</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div>
+                <h1>V2Ray 流量监控</h1>
+                <p id="status-text">正在连接 V2Ray API...</p>
+            </div>
+            <button id="refresh-button" type="button">刷新</button>
+        </header>
+
+        <section class="metrics" aria-label="流量总览">
+            <article>
+                <span>总上传</span>
+                <strong id="total-uplink">-</strong>
+            </article>
+            <article>
+                <span>总下载</span>
+                <strong id="total-downlink">-</strong>
+            </article>
+            <article>
+                <span>总流量</span>
+                <strong id="total-traffic">-</strong>
+            </article>
+            <article>
+                <span>最后更新</span>
+                <strong id="updated-at">-</strong>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>用户流量</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>用户</th>
+                        <th>上传</th>
+                        <th>下载</th>
+                        <th>总量</th>
+                        <th>月配额</th>
+                        <th>使用率</th>
+                    </tr>
+                    </thead>
+                    <tbody id="users-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="grid">
+            <section class="panel">
+                <h2>Inbound</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>上传</th>
+                            <th>下载</th>
+                            <th>总量</th>
+                        </tr>
+                        </thead>
+                        <tbody id="inbound-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Outbound</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>上传</th>
+                            <th>下载</th>
+                            <th>总量</th>
+                        </tr>
+                        </thead>
+                        <tbody id="outbound-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script>
+        window.V2RAY_MONITOR = {
+            refreshSeconds: {{ refresh_seconds }}
+        };
+    </script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+

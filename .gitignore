@@ -1,0 +1,10 @@
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+
+config.toml
+data/*.sqlite3
+data/*.sqlite3-*
+
+.DS_Store
