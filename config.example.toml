@@ -17,6 +17,14 @@ password = "change-me"
 [database]
 path = "data/traffic.sqlite3"
 
+[traffic]
+# AWS 每月免费出站流量额度，单位 GB。
+monthly_quota_gb = 100
+
+[logs]
+access_path = "/var/log/v2ray/access.log"
+max_lines = 500
+
 [quota]
 # 单位是 GB。用户名需要和 V2Ray stats 里的 user 名称一致。
 # yujl = 100
@@ -25,4 +33,3 @@ path = "data/traffic.sqlite3"
 enabled = false
 provider = "none"
 thresholds = [80, 90, 100]
-

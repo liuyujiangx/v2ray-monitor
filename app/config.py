@@ -38,6 +38,17 @@ class DatabaseConfig:
 
 
 @dataclass(frozen=True)
+class TrafficConfig:
+    monthly_quota_gb: int = 100
+
+
+@dataclass(frozen=True)
+class LogsConfig:
+    access_path: str = "/var/log/v2ray/access.log"
+    max_lines: int = 500
+
+
+@dataclass(frozen=True)
 class AlertsConfig:
     enabled: bool = False
     provider: str = "none"
@@ -51,6 +62,8 @@ class AppConfig:
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     auth: AuthConfig = field(default_factory=AuthConfig)
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
+    traffic: TrafficConfig = field(default_factory=TrafficConfig)
+    logs: LogsConfig = field(default_factory=LogsConfig)
     quota: dict[str, int] = field(default_factory=dict)
     alerts: AlertsConfig = field(default_factory=AlertsConfig)
 
@@ -73,6 +86,8 @@ def load_config(path: Path = CONFIG_PATH) -> AppConfig:
         dashboard=DashboardConfig(**raw.get("dashboard", {})),
         auth=AuthConfig(**raw.get("auth", {})),
         database=DatabaseConfig(**raw.get("database", {})),
+        traffic=TrafficConfig(**raw.get("traffic", {})),
+        logs=LogsConfig(**raw.get("logs", {})),
         quota=raw.get("quota", {}),
         alerts=AlertsConfig(**raw.get("alerts", {})),
     )

@@ -18,15 +18,31 @@
 
         <section class="metrics" aria-label="流量总览">
             <article>
-                <span>总上传</span>
+                <span>本月已用</span>
+                <strong id="month-used">-</strong>
+            </article>
+            <article>
+                <span>本月剩余</span>
+                <strong id="month-remaining">-</strong>
+            </article>
+            <article>
+                <span>今日流量</span>
+                <strong id="today-traffic">-</strong>
+            </article>
+            <article>
+                <span>月额度使用率</span>
+                <strong id="month-usage">-</strong>
+            </article>
+            <article>
+                <span>实时上传</span>
                 <strong id="total-uplink">-</strong>
             </article>
             <article>
-                <span>总下载</span>
+                <span>实时下载</span>
                 <strong id="total-downlink">-</strong>
             </article>
             <article>
-                <span>总流量</span>
+                <span>累计总流量</span>
                 <strong id="total-traffic">-</strong>
             </article>
             <article>
@@ -44,7 +60,9 @@
                         <th>用户</th>
                         <th>上传</th>
                         <th>下载</th>
-                        <th>总量</th>
+                        <th>实时速度</th>
+                        <th>今日</th>
+                        <th>本月</th>
                         <th>月配额</th>
                         <th>使用率</th>
                     </tr>
@@ -89,6 +107,67 @@
                 </div>
             </section>
         </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <h2>告警记录</h2>
+                <span class="hint">每月每个阈值只记录一次</span>
+            </div>
+            <div id="alerts-list" class="alert-list"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <h2>访问日志</h2>
+                <div class="filters">
+                    <input id="log-search" type="search" placeholder="搜索域名 / IP / 用户">
+                    <select id="log-user-filter">
+                        <option value="">全部用户</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="log-summary">
+                <div>
+                    <span>最近记录</span>
+                    <strong id="log-total">-</strong>
+                </div>
+                <div>
+                    <span>最新访问</span>
+                    <strong id="log-latest">-</strong>
+                </div>
+                <div>
+                    <span>活跃来源 IP</span>
+                    <strong id="log-ip-count">-</strong>
+                </div>
+            </div>
+
+            <div class="rank-grid">
+                <div>
+                    <h3>访问域名排行</h3>
+                    <ol id="target-rank"></ol>
+                </div>
+                <div>
+                    <h3>来源 IP 排行</h3>
+                    <ol id="source-rank"></ol>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="logs-table">
+                    <thead>
+                    <tr>
+                        <th>时间</th>
+                        <th>用户</th>
+                        <th>来源 IP</th>
+                        <th>目标</th>
+                        <th>出站</th>
+                    </tr>
+                    </thead>
+                    <tbody id="logs-body"></tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -99,4 +178,3 @@
     <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
-
