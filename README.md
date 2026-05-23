@@ -2,6 +2,19 @@
 
 一个自用的 V2Ray 流量监控面板，基于 FastAPI。当前目标是监控 AWS 服务器代理流量，重点避免超过每月 100GB 免费流量额度。
 
+## 开源协议
+
+本项目使用 MIT License。详见 [LICENSE](LICENSE)。
+
+## 开源前安全说明
+
+仓库只提交示例配置和源码，不提交真实运行配置。请不要把下面这些内容提交到 GitHub：
+
+- `config.toml`
+- `data/*.sqlite3`
+- V2Ray access log / error log
+- 密码、token、私钥、真实服务器 IP、真实用户访问日志
+
 ## 已有功能
 
 - 实时读取 `v2ray api stats` 输出
@@ -82,11 +95,13 @@ http://127.0.0.1:8000
 ## 服务器试运行
 
 ```bash
-cd /home/ec2-user/project/v2ray-monitor
+cd /opt/v2ray-monitor
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --host 0.0.0.0 --port 7011
 ```
+
+如果项目放在其他目录，把 `/opt/v2ray-monitor` 换成你的实际路径。
 
 ## 配置
 
