@@ -6,8 +6,6 @@ from datetime import datetime
 def evaluate_monthly_alerts(
     total_bytes: int,
     total_quota_gb: int,
-    user_totals: dict[str, int],
-    user_quota_gb: dict[str, int],
     thresholds: list[int],
     now: datetime,
 ) -> list[dict]:
@@ -25,22 +23,6 @@ def evaluate_monthly_alerts(
             month_key=month_key,
         )
     )
-
-    for user, used_bytes in user_totals.items():
-        quota_gb = user_quota_gb.get(user)
-        if quota_gb is None:
-            continue
-
-        alerts.extend(
-            build_alerts(
-                scope="user",
-                name=user,
-                used_bytes=used_bytes,
-                quota_bytes=gb_to_bytes(quota_gb),
-                thresholds=thresholds,
-                month_key=month_key,
-            )
-        )
 
     return alerts
 

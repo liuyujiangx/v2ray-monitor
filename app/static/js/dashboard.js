@@ -27,6 +27,7 @@ const elements = {
     targetRank: document.getElementById("target-rank"),
     sourceRank: document.getElementById("source-rank"),
     refreshButton: document.getElementById("refresh-button"),
+    sendReportButton: document.getElementById("send-report-button"),
 };
 
 function formatBytes(bytes) {
@@ -292,6 +293,31 @@ async function fetchLogs() {
     }
 }
 
+async function sendDailyReport() {
+    elements.sendReportButton.disabled = true;
+    const originalText = elements.sendReportButton.textContent;
+    elements.sendReportButton.textContent = "发送中...";
+    elements.statusText.textContent = "正在发送日报邮件...";
+
+    try {
+        const response = await fetch("/api/reports/daily/send", {
+            method: "POST",
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data.detail || "发送失败");
+        }
+
+        elements.statusText.textContent = data.message || "日报邮件已发送";
+    } catch (error) {
+        elements.statusText.textContent = `日报邮件发送失败：${error.message}`;
+    } finally {
+        elements.sendReportButton.disabled = false;
+        elements.sendReportButton.textContent = originalText;
+    }
+}
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -304,6 +330,10 @@ function escapeHtml(value) {
 elements.refreshButton.addEventListener("click", () => {
     fetchStats();
     fetchLogs();
+});
+
+elements.sendReportButton.addEventListener("click", () => {
+    sendDailyReport();
 });
 
 elements.logSearch.addEventListener("input", (event) => {

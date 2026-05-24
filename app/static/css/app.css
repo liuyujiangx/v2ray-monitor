@@ -63,6 +63,16 @@ button:hover {
     background: #eef1f4;
 }
 
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 10px;
+}
+
 .metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -325,6 +335,14 @@ input {
     .topbar {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .topbar-actions {
+        width: 100%;
+    }
+
+    .topbar-actions button {
+        flex: 1;
     }
 
     .metrics,

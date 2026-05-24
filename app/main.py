@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import secrets
 from pathlib import Path
 from typing import Optional
@@ -16,19 +18,89 @@ from app.models import TrafficPair, usage_percent
 from app.services.access_log import read_access_log
 from app.services.alerts import evaluate_monthly_alerts
 from app.services.history import HistoryStore
-from app.services.notify import notify_new_alert
+from app.services.notify import notify_new_alert, send_email_report
+from app.services.reports import build_daily_usage_report, format_daily_usage_report
 from app.services.v2ray import read_stats
 
 
 config = load_config()
 app = FastAPI(title="V2Ray Monitor")
 security = HTTPBasic(auto_error=False)
+logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 history = HistoryStore(str(ROOT_DIR / config.database.path))
+daily_report_task: asyncio.Task | None = None
+
+
+@app.on_event("startup")
+async def start_daily_report_scheduler() -> None:
+    global daily_report_task
+    if not config.daily_report.enabled:
+        return
+    daily_report_task = asyncio.create_task(daily_report_loop())
+
+
+@app.on_event("shutdown")
+async def stop_daily_report_scheduler() -> None:
+    if daily_report_task is None:
+        return
+    daily_report_task.cancel()
+    try:
+        await daily_report_task
+    except asyncio.CancelledError:
+        pass
+
+
+async def daily_report_loop() -> None:
+    while True:
+        try:
+            await maybe_send_daily_report()
+        except Exception:
+            logger.exception("Daily report scheduler failed")
+        await asyncio.sleep(60)
+
+
+async def maybe_send_daily_report() -> None:
+    now = datetime.now().astimezone()
+    send_time = parse_send_time(config.daily_report.send_time)
+    if send_time is None:
+        logger.warning(
+            "Invalid daily_report.send_time %r; expected HH:MM",
+            config.daily_report.send_time,
+        )
+        return
+    if now.time() < send_time:
+        return
+
+    event_key = f"daily-report:{now:%Y-%m-%d}"
+    if history.notification_event_exists(event_key):
+        return
+
+    sent = await asyncio.to_thread(send_daily_report, now)
+    if sent:
+        history.create_notification_event(event_key, "daily_report", now)
+
+
+def send_daily_report(now: datetime) -> bool:
+    report = build_daily_usage_report(config, history, now)
+    subject, body = format_daily_usage_report(report)
+    return send_email_report(config.alerts.email, subject, body)
+
+
+def parse_send_time(value: str) -> time | None:
+    try:
+        hour_text, minute_text = value.strip().split(":", 1)
+        hour = int(hour_text)
+        minute = int(minute_text)
+    except ValueError:
+        return None
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return None
+    return time(hour=hour, minute=minute)
 
 
 def require_auth(credentials: Optional[HTTPBasicCredentials] = Depends(security)) -> None:
@@ -82,8 +154,6 @@ def api_stats(_: None = Depends(require_auth)):
     for alert in evaluate_monthly_alerts(
         total_bytes=month_total.total,
         total_quota_gb=config.traffic.monthly_quota_gb,
-        user_totals={name: traffic.total for name, traffic in month_users.items()},
-        user_quota_gb=config.quota,
         thresholds=config.alerts.thresholds,
         now=now,
     ):
@@ -142,6 +212,31 @@ def api_health(_: None = Depends(require_auth)):
         "updated_at": snapshot.updated_at.isoformat(),
         "database_path": str(history.path),
         "access_log_path": config.logs.access_path,
+    }
+
+
+@app.post("/api/reports/daily/send", response_class=JSONResponse)
+async def api_send_daily_report(_: None = Depends(require_auth)):
+    now = datetime.now().astimezone()
+    try:
+        sent = await asyncio.to_thread(send_daily_report, now)
+    except Exception as exc:
+        logger.exception("Manual daily report send failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"发送日报失败: {exc}",
+        ) from exc
+
+    if not sent:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="邮件配置不完整，未发送日报",
+        )
+
+    return {
+        "ok": True,
+        "message": "日报邮件已发送",
+        "sent_at": now.isoformat(),
     }
 
 

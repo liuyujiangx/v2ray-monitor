@@ -50,6 +50,27 @@ def send_email_alert(
     _deliver_smtp(email_cfg, message)
 
 
+def send_email_report(
+    email_cfg: EmailAlertsConfig,
+    subject: str,
+    body: str,
+) -> bool:
+    if not _email_config_ready(email_cfg):
+        logger.warning(
+            "Daily email report enabled but SMTP is incomplete "
+            "(need smtp_host, from_addr, and at least one to_addrs); skipping send"
+        )
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = email_cfg.from_addr
+    message["To"] = ", ".join(addr.strip() for addr in email_cfg.to_addrs if addr.strip())
+    message.set_content(body)
+    _deliver_smtp(email_cfg, message)
+    return True
+
+
 def _email_config_ready(email_cfg: EmailAlertsConfig) -> bool:
     return bool(
         email_cfg.smtp_host.strip()

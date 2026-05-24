@@ -13,7 +13,10 @@
                 <h1>V2Ray 流量监控</h1>
                 <p id="status-text">正在连接 V2Ray API...</p>
             </div>
-            <button id="refresh-button" type="button">刷新</button>
+            <div class="topbar-actions">
+                <button id="send-report-button" type="button">立即发送日报</button>
+                <button id="refresh-button" type="button">刷新</button>
+            </div>
         </header>
 
         <section class="metrics" aria-label="流量总览">
@@ -63,7 +66,7 @@
                         <th>实时速度</th>
                         <th>今日</th>
                         <th>本月</th>
-                        <th>月配额</th>
+                        <th>参考额度</th>
                         <th>使用率</th>
                     </tr>
                     </thead>
