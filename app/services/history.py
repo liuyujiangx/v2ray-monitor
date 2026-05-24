@@ -37,6 +37,16 @@ CREATE TABLE IF NOT EXISTS alert_events (
 
 CREATE INDEX IF NOT EXISTS idx_alert_events_created_at
 ON alert_events (created_at);
+
+CREATE TABLE IF NOT EXISTS notification_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_key TEXT NOT NULL UNIQUE,
+    kind TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_notification_events_created_at
+ON notification_events (created_at);
 """
 
 
@@ -236,6 +246,38 @@ class HistoryStore:
                 created_at,
             ) in rows
         ]
+
+    def create_notification_event(
+        self,
+        event_key: str,
+        kind: str,
+        created_at: datetime,
+    ) -> bool:
+        try:
+            with sqlite3.connect(self.path) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO notification_events (event_key, kind, created_at)
+                    VALUES (?, ?, ?)
+                    """,
+                    (event_key, kind, created_at.isoformat()),
+                )
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+    def notification_event_exists(self, event_key: str) -> bool:
+        with sqlite3.connect(self.path) as conn:
+            row = conn.execute(
+                """
+                SELECT 1
+                FROM notification_events
+                WHERE event_key = ?
+                LIMIT 1
+                """,
+                (event_key,),
+            ).fetchone()
+        return row is not None
 
     def _init_db(self) -> None:
         with sqlite3.connect(self.path) as conn:

@@ -26,11 +26,12 @@
 - AWS 月度总额度监控，默认 100GB
 - 本月剩余额度和使用率
 - 每个用户今日 / 本月流量
-- 每个用户月度配额和使用率进度条
+- 可选的用户参考额度和使用率进度条
 - 实时上传 / 下载速度估算
 - 页面内告警记录
 - 月度流量阈值告警（80% / 90% / 100% 可配置）
 - 新告警邮件通知（SMTP，可选）
+- 每日用量邮件日报（SMTP，可选）
 - V2Ray access log 读取
 - 最近访问日志列表
 - 按用户过滤访问日志
@@ -128,10 +129,16 @@ monthly_quota_gb = 100
 access_path = "/var/log/v2ray/access.log"
 max_lines = 500
 
+[daily_report]
+enabled = true
+send_time = "09:00"
+top_limit = 10
+log_max_lines = 2000
+
 [quota]
-# 单位 GB，用户名需要和 V2Ray stats 里的 email 一致。
-# yujl = 60
-# other = 20
+# 可选：仅用于面板展示单个用户参考额度，不参与总额度告警。
+# 整个 V2Ray 的月度总额度由 [traffic].monthly_quota_gb 控制。
+# yujl = 20
 
 [auth]
 enabled = false
@@ -171,7 +178,21 @@ to_addrs = ["you@163.com"]
 3. 编辑 `config.toml`：`provider = "email"`，在 `[alerts.email]` 中填写完整 `@163.com` 地址与授权码；`password` 必须是授权码，不能填网页登录密码。
 4. **推荐**：`smtp.163.com`、端口 **465**、`use_ssl = true`、`use_tls = false`。若 465 被网络拦截，可改用端口 **587**、`use_tls = true`、`use_ssl = false`。
 
-`provider = "none"` 时仅写入 SQLite 并在面板展示，不发邮件。SMTP 字段不完整时会跳过发送并打 warning 日志，不影响 `/api/stats` 响应。
+`provider = "none"` 时告警仅写入 SQLite 并在面板展示，不发告警邮件。每日用量日报由 `[daily_report]` 单独控制，但复用 `[alerts.email]` SMTP 配置。SMTP 字段不完整时会跳过发送并打 warning 日志，不影响 `/api/stats` 响应。
+
+### 每日用量日报
+
+开启 `[daily_report]` 后，服务进程会按本地时间每天发送一次邮件：
+
+- 当前月度总额度、已用、剩余、使用率
+- 今日已用流量
+- 用户本月 / 今日用量排行
+- access log 中访问最多的 URL / 目标地址
+- access log 中出现过的来源 IP
+
+面板顶部的“立即发送日报”按钮可以手动发送一次同样内容的邮件，不影响当天定时日报的发送记录。
+
+注意：V2Ray access log 当前格式不包含每条访问的字节数，所以 URL 和来源 IP 排行统计的是访问次数，不是按流量字节排序。真正的 100GB 流量额度按整个 V2Ray 总流量统计，由 `[traffic].monthly_quota_gb` 控制。
 
 ## V2Ray 要求
 

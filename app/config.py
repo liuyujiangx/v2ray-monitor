@@ -69,6 +69,14 @@ class AlertsConfig:
 
 
 @dataclass(frozen=True)
+class DailyReportConfig:
+    enabled: bool = False
+    send_time: str = "09:00"
+    top_limit: int = 10
+    log_max_lines: int = 2000
+
+
+@dataclass(frozen=True)
 class AppConfig:
     server: ServerConfig = field(default_factory=ServerConfig)
     v2ray: V2RayConfig = field(default_factory=V2RayConfig)
@@ -79,6 +87,7 @@ class AppConfig:
     logs: LogsConfig = field(default_factory=LogsConfig)
     quota: dict[str, int] = field(default_factory=dict)
     alerts: AlertsConfig = field(default_factory=AlertsConfig)
+    daily_report: DailyReportConfig = field(default_factory=DailyReportConfig)
 
 
 def load_config(path: Path = CONFIG_PATH) -> AppConfig:
@@ -103,6 +112,7 @@ def load_config(path: Path = CONFIG_PATH) -> AppConfig:
         logs=LogsConfig(**raw.get("logs", {})),
         quota=raw.get("quota", {}),
         alerts=_load_alerts_config(raw.get("alerts", {})),
+        daily_report=DailyReportConfig(**raw.get("daily_report", {})),
     )
 
 
